@@ -1,0 +1,31 @@
+name: Deploy ke AWS EC2
+
+on:
+    push:
+        branches:
+            - main
+
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Deploy to AWS EC2
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                host: ${{ secrets.AWS_HOST }}
+                username: ${{ secrets.AWS_USER }}
+                key: ${{ secrets.AWS_SSH_KEY }}
+                port: 22
+
+                script: |
+                  cd uji-bnsp
+                  git pull
+                  sudo docker stop web-saya || true
+                  sudo docker rm web-saya || true
+                  sudo docker build -t uji-kompetensi-web .
+                  sudo docker run -d -p 80:80 --name web-saya uji-kompetensi-web
